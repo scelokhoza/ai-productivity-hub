@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { Mail, FileText, ListChecks, Search } from "lucide-react";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
 import { AiResult } from "@/components/ai-result";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,9 @@ function useRunner<I>(kind: ToolKind, runner: (i: I) => Promise<string>, titleOf
       const ts = Date.now();
       setResult({ output, ts });
       addHistoryEntry({ tool: kind, title: titleOf(input), prompt: promptOf(input), output });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "AI request failed.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send, Sparkles, User, Info } from "lucide-react";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,11 +37,20 @@ function AssistantPage() {
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setTyping(true);
-    const reply = await chatReply(trimmed, messages.map((m) => ({ role: m.role, content: m.content })));
-    const assistantMsg: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply, ts: Date.now() };
-    setMessages((m) => [...m, assistantMsg]);
-    setTyping(false);
-    addHistoryEntry({ tool: "chat", title: trimmed.slice(0, 60), prompt: trimmed, output: reply });
+    try {
+      const reply = await chatReply(
+        trimmed,
+        messages.map((m) => ({ role: m.role, content: m.content })),
+      );
+      const assistantMsg: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply, ts: Date.now() };
+      setMessages((m) => [...m, assistantMsg]);
+      addHistoryEntry({ tool: "chat", title: trimmed.slice(0, 60), prompt: trimmed, output: reply });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "AI request failed.";
+      toast.error(msg);
+    } finally {
+      setTyping(false);
+    }
   };
 
   return (
