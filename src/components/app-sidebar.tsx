@@ -1,8 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, MessageSquare, Wrench, History, Sparkles } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { LayoutDashboard, MessageSquare, Wrench, History, Sparkles, LogOut } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -22,6 +26,19 @@ const items = [
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => (url === "/" ? currentPath === "/" : currentPath.startsWith(url));
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -58,6 +75,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleSignOut} tooltip="Sign out">
+              <LogOut className="h-4 w-4" />
+              <span>Sign out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

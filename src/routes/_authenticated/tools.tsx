@@ -26,7 +26,7 @@ import { addHistoryEntry } from "@/lib/history-store";
 
 const search = z.object({ tab: z.enum(["email", "summary", "tasks", "research"]).optional() });
 
-export const Route = createFileRoute("/tools")({
+export const Route = createFileRoute("/_authenticated/tools")({
   validateSearch: search,
   component: ToolsPage,
 });

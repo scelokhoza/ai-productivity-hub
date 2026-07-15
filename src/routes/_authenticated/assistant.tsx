@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { chatReply, DISCLAIMER } from "@/lib/ai-service";
 import { addHistoryEntry } from "@/lib/history-store";
 
-export const Route = createFileRoute("/assistant")({ component: AssistantPage });
+export const Route = createFileRoute("/_authenticated/assistant")({ component: AssistantPage });
 
 interface Msg { id: string; role: "user" | "assistant"; content: string; ts: number }
 
