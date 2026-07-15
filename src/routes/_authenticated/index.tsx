@@ -1,9 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, FileText, ListChecks, Search, Sparkles, Zap, TrendingUp, Clock } from "lucide-react";
+import {
+  Mail,
+  FileText,
+  ListChecks,
+  Search,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  Clock,
+  LayoutTemplate,
+  ArrowRight,
+  Users,
+  ClipboardList,
+  BarChart3,
+} from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useHistory } from "@/lib/history-store";
+import { TEMPLATES, CATEGORY_META, type Template } from "@/lib/templates";
 
 export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
 
@@ -34,6 +49,25 @@ function Dashboard() {
     { label: "This week", value: weekCount, icon: TrendingUp, hint: "Rolling 7 days" },
     { label: "Total saved", value: history.length, icon: Clock, hint: "In your history" },
   ];
+
+  const featuredIds = [
+    "client-follow-up",
+    "weekly-status-report",
+    "meeting-agenda",
+    "project-update",
+    "risk-assessment",
+    "research-brief",
+  ];
+  const featured = featuredIds
+    .map((id) => TEMPLATES.find((t) => t.id === id))
+    .filter((t): t is Template => Boolean(t));
+  const categoryIcons = {
+    email: Mail,
+    meetings: Users,
+    project: ClipboardList,
+    research: Search,
+    reporting: BarChart3,
+  } as const;
 
   return (
     <AppLayout title="Dashboard">
@@ -97,6 +131,57 @@ function Dashboard() {
                 <div className="mt-1 text-xs text-muted-foreground">{q.desc}</div>
               </Link>
             ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-baseline justify-between">
+            <div>
+              <h3 className="text-base font-semibold flex items-center gap-2">
+                <LayoutTemplate className="h-4 w-4 text-primary" />
+                Prompt templates
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Launch a professional workflow with one click.
+              </p>
+            </div>
+            <Link to="/templates" className="text-xs text-primary hover:underline">
+              Browse all →
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((t) => {
+              const Icon = categoryIcons[t.category];
+              return (
+                <Link
+                  key={t.id}
+                  to="/tools"
+                  search={{ tab: t.tool, template: t.id }}
+                  className="group relative overflow-hidden rounded-xl border bg-card p-4 transition hover:border-primary/40 hover:shadow-md"
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${t.accent} opacity-60`}
+                  />
+                  <div className="relative">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background/80 text-primary backdrop-blur">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <span className="rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur">
+                        {CATEGORY_META[t.category].label}
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold">{t.title}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {t.description}
+                    </div>
+                    <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                      Use template <ArrowRight className="h-3 w-3" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 

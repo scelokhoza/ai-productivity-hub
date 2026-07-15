@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, MessageSquare, Wrench, History, Sparkles, LogOut } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Wrench, History, Sparkles, LogOut, LayoutTemplate } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "AI Assistant", url: "/assistant", icon: MessageSquare },
   { title: "Productivity Tools", url: "/tools", icon: Wrench },
+  { title: "Templates", url: "/templates", icon: LayoutTemplate },
   { title: "History", url: "/history", icon: History },
 ];
 

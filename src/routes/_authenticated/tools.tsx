@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Mail, FileText, ListChecks, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -23,8 +23,12 @@ import {
   type ToolKind,
 } from "@/lib/ai-service";
 import { addHistoryEntry } from "@/lib/history-store";
+import { getTemplate, type TemplateTool } from "@/lib/templates";
 
-const search = z.object({ tab: z.enum(["email", "summary", "tasks", "research"]).optional() });
+const search = z.object({
+  tab: z.enum(["email", "summary", "tasks", "research"]).optional(),
+  template: z.string().optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/tools")({
   validateSearch: search,
@@ -45,7 +49,12 @@ function ToolsPage() {
             Purpose-built AI tools for the most common workplace tasks.
           </p>
         </div>
-        <Tabs value={active} onValueChange={(v) => navigate({ search: { tab: v as never } })}>
+        <Tabs
+          value={active}
+          onValueChange={(v) =>
+            navigate({ search: { tab: v as never, template: undefined } })
+          }
+        >
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="email"><Mail className="mr-1.5 h-3.5 w-3.5" />Email</TabsTrigger>
             <TabsTrigger value="summary"><FileText className="mr-1.5 h-3.5 w-3.5" />Summarize</TabsTrigger>
@@ -87,8 +96,34 @@ function useRunner<I>(kind: ToolKind, runner: (i: I) => Promise<string>, titleOf
   return { result, loading, run, regenerate };
 }
 
+function useTemplatePrefill<T>(
+  toolKind: TemplateTool,
+  apply: (prefill: NonNullable<ReturnType<typeof getPrefillFor>>) => void,
+) {
+  const { template } = Route.useSearch();
+  useEffect(() => {
+    if (!template) return;
+    const t = getTemplate(template);
+    if (!t || t.tool !== toolKind) return;
+    const data = getPrefillFor(t, toolKind);
+    if (data) apply(data as never);
+  }, [template, toolKind, apply]);
+}
+
+function getPrefillFor(
+  t: ReturnType<typeof getTemplate>,
+  kind: TemplateTool,
+): Record<string, string> | undefined {
+  if (!t) return undefined;
+  const p = t.prefill[kind];
+  return p as Record<string, string> | undefined;
+}
+
 function EmailTool() {
   const [form, setForm] = useState<EmailInput>({ purpose: "", audience: "", tone: "Professional", keyPoints: "" });
+  useTemplatePrefill("email", (data) =>
+    setForm((prev) => ({ ...prev, ...(data as Partial<EmailInput>) })),
+  );
   const { result, loading, run, regenerate } = useRunner<EmailInput>(
     "email",
     generateEmail,
@@ -129,6 +164,10 @@ function EmailTool() {
 
 function SummaryTool() {
   const [notes, setNotes] = useState("");
+  useTemplatePrefill("summary", (data) => {
+    const d = data as { notes?: string };
+    if (d.notes) setNotes(d.notes);
+  });
   const { result, loading, run, regenerate } = useRunner<string>(
     "summary",
     summarizeNotes,
@@ -156,6 +195,9 @@ function SummaryTool() {
 
 function TasksTool() {
   const [form, setForm] = useState<TasksInput>({ tasks: "", deadlines: "", context: "" });
+  useTemplatePrefill("tasks", (data) =>
+    setForm((prev) => ({ ...prev, ...(data as Partial<TasksInput>) })),
+  );
   const { result, loading, run, regenerate } = useRunner<TasksInput>(
     "tasks",
     planTasks,
@@ -185,6 +227,9 @@ function TasksTool() {
 
 function ResearchTool() {
   const [form, setForm] = useState<ResearchInput>({ topic: "", goal: "", outcome: "" });
+  useTemplatePrefill("research", (data) =>
+    setForm((prev) => ({ ...prev, ...(data as Partial<ResearchInput>) })),
+  );
   const { result, loading, run, regenerate } = useRunner<ResearchInput>(
     "research",
     researchTopic,
