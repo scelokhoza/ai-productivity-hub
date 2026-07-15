@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useHistory } from "@/lib/history-store";
 
-export const Route = createFileRoute("/")({ component: Dashboard });
+export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
 
 const quickActions = [
   { title: "Generate Email", desc: "Draft a professional email in seconds", icon: Mail, to: "/tools", tab: "email" },

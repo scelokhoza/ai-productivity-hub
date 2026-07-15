@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { clearHistory, removeHistoryEntry, useHistory, type HistoryEntry } from "@/lib/history-store";
 import type { ToolKind } from "@/lib/ai-service";
 
-export const Route = createFileRoute("/history")({ component: HistoryPage });
+export const Route = createFileRoute("/_authenticated/history")({ component: HistoryPage });
 
 const toolMeta: Record<ToolKind, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   email: { label: "Email", icon: Mail },
