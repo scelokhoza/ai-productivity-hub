@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Copy, RefreshCw, Check, Info, FileText, FileDown } from "lucide-react";
+import { Copy, RefreshCw, Check, Info, FileText, FileDown, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DISCLAIMER } from "@/lib/ai-service";
+import { DISCLAIMER, type ToolKind } from "@/lib/ai-service";
+import { shareOutput } from "@/lib/team-store";
 import { toast } from "sonner";
 
 interface Props {
@@ -10,10 +11,12 @@ interface Props {
   timestamp: number;
   loading?: boolean;
   onRegenerate?: () => void;
+  share?: { tool: ToolKind; title: string };
 }
 
-export function AiResult({ output, timestamp, loading, onRegenerate }: Props) {
+export function AiResult({ output, timestamp, loading, onRegenerate, share }: Props) {
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const copy = async () => {
     await navigator.clipboard.writeText(output);
@@ -75,6 +78,14 @@ export function AiResult({ output, timestamp, loading, onRegenerate }: Props) {
     toast.success("Downloaded as PDF");
   };
 
+  const shareToTeam = () => {
+    if (!share || !output.trim()) return;
+    shareOutput({ tool: share.tool, title: share.title, content: output });
+    setShared(true);
+    toast.success("Shared to team workspace");
+    setTimeout(() => setShared(false), 1500);
+  };
+
   if (loading) {
     return (
       <Card className="p-6">
@@ -113,6 +124,12 @@ export function AiResult({ output, timestamp, loading, onRegenerate }: Props) {
             <Button size="sm" variant="ghost" onClick={onRegenerate}>
               <RefreshCw className="h-3.5 w-3.5" />
               <span className="ml-1.5">Regenerate</span>
+            </Button>
+          )}
+          {share && (
+            <Button size="sm" variant="ghost" onClick={shareToTeam}>
+              {shared ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+              <span className="ml-1.5">{shared ? "Shared" : "Share to team"}</span>
             </Button>
           )}
         </div>

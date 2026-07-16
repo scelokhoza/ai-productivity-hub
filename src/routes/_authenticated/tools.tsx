@@ -157,7 +157,13 @@ function EmailTool() {
           </Button>
         </CardContent>
       </Card>
-      <ResultPane loading={loading} result={result} onRegenerate={regenerate} placeholder="Fill in the details and generate a draft email." />
+      <ResultPane
+        loading={loading}
+        result={result}
+        onRegenerate={regenerate}
+        placeholder="Fill in the details and generate a draft email."
+        share={{ tool: "email", title: form.purpose ? `Email: ${form.purpose}` : "Email draft" }}
+      />
     </div>
   );
 }
@@ -188,7 +194,13 @@ function SummaryTool() {
           </Button>
         </CardContent>
       </Card>
-      <ResultPane loading={loading} result={result} onRegenerate={regenerate} placeholder="Paste your meeting notes to get a clean executive summary." />
+      <ResultPane
+        loading={loading}
+        result={result}
+        onRegenerate={regenerate}
+        placeholder="Paste your meeting notes to get a clean executive summary."
+        share={{ tool: "summary", title: `Meeting summary (${new Date().toLocaleDateString()})` }}
+      />
     </div>
   );
 }
@@ -220,7 +232,13 @@ function TasksTool() {
           </Button>
         </CardContent>
       </Card>
-      <ResultPane loading={loading} result={result} onRegenerate={regenerate} placeholder="Add your tasks to generate a prioritized plan." />
+      <ResultPane
+        loading={loading}
+        result={result}
+        onRegenerate={regenerate}
+        placeholder="Add your tasks to generate a prioritized plan."
+        share={{ tool: "tasks", title: `Task plan (${new Date().toLocaleDateString()})` }}
+      />
     </div>
   );
 }
@@ -252,7 +270,13 @@ function ResearchTool() {
           </Button>
         </CardContent>
       </Card>
-      <ResultPane loading={loading} result={result} onRegenerate={regenerate} placeholder="Enter a topic and goal to generate research insights." />
+      <ResultPane
+        loading={loading}
+        result={result}
+        onRegenerate={regenerate}
+        placeholder="Enter a topic and goal to generate research insights."
+        share={{ tool: "research", title: form.topic ? `Research: ${form.topic}` : "Research report" }}
+      />
     </div>
   );
 }
@@ -266,9 +290,29 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function ResultPane({ loading, result, onRegenerate, placeholder }: { loading: boolean; result: Result | null; onRegenerate: () => void; placeholder: string }) {
+function ResultPane({
+  loading,
+  result,
+  onRegenerate,
+  placeholder,
+  share,
+}: {
+  loading: boolean;
+  result: Result | null;
+  onRegenerate: () => void;
+  placeholder: string;
+  share?: { tool: "email" | "summary" | "tasks" | "research"; title: string };
+}) {
   if (loading || result) {
-    return <AiResult loading={loading} output={result?.output ?? ""} timestamp={result?.ts ?? Date.now()} onRegenerate={onRegenerate} />;
+    return (
+      <AiResult
+        loading={loading}
+        output={result?.output ?? ""}
+        timestamp={result?.ts ?? Date.now()}
+        onRegenerate={onRegenerate}
+        share={share}
+      />
+    );
   }
   return (
     <Card className="flex items-center justify-center border-dashed">
