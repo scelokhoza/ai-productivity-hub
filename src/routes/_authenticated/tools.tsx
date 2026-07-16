@@ -267,9 +267,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ResultPane({ loading, result, onRegenerate, placeholder }: { loading: boolean; result: Result | null; onRegenerate: () => void; placeholder: string }) {
-  if (loading || result) {
-    return <AiResult loading={loading} output={result?.output ?? ""} timestamp={result?.ts ?? Date.now()} onRegenerate={onRegenerate} />;
-  }
+  // Note: shared metadata added at tool level below via wrapping component.
   return (
     <Card className="flex items-center justify-center border-dashed">
       <CardContent className="py-12 text-center">
