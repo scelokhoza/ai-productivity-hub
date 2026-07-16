@@ -356,17 +356,15 @@ export function updateTaskStatus(id: string, status: TaskStatus) {
     tasks: state.tasks.map((t) => (t.id === id ? { ...t, status } : t)),
   };
   if (status === "completed" && task.status !== "completed") {
-    next.activity = [
-      {
-        id: uid("a"),
-        kind: "task_completed",
-        actorId: state.currentUserId,
-        summary: "completed a task",
-        detail: task.title,
-        createdAt: Date.now(),
-      },
-      ...state.activity,
-    ].slice(0, 100);
+    const activity: Activity = {
+      id: uid("a"),
+      kind: "task_completed",
+      actorId: state.currentUserId,
+      summary: "completed a task",
+      detail: task.title,
+      createdAt: Date.now(),
+    };
+    next.activity = [activity, ...state.activity].slice(0, 100);
   }
   write(next);
 }
