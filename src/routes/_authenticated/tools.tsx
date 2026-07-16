@@ -266,8 +266,30 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function ResultPane({ loading, result, onRegenerate, placeholder }: { loading: boolean; result: Result | null; onRegenerate: () => void; placeholder: string }) {
-  // Note: shared metadata added at tool level below via wrapping component.
+function ResultPane({
+  loading,
+  result,
+  onRegenerate,
+  placeholder,
+  share,
+}: {
+  loading: boolean;
+  result: Result | null;
+  onRegenerate: () => void;
+  placeholder: string;
+  share?: { tool: "email" | "summary" | "tasks" | "research"; title: string };
+}) {
+  if (loading || result) {
+    return (
+      <AiResult
+        loading={loading}
+        output={result?.output ?? ""}
+        timestamp={result?.ts ?? Date.now()}
+        onRegenerate={onRegenerate}
+        share={share}
+      />
+    );
+  }
   return (
     <Card className="flex items-center justify-center border-dashed">
       <CardContent className="py-12 text-center">
