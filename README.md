@@ -1,8 +1,8 @@
 # FlowMind — AI Workplace Productivity Assistant
 
-FlowMind is a modern, responsive SaaS-style web application that helps professionals boost workplace productivity through AI-assisted tools. Built as an academic MVP prototype, it demonstrates a polished, component-based frontend with simulated AI responses — no backend integrations required.
+FlowMind is a modern, responsive SaaS-style web application that helps professionals boost workplace productivity through AI-assisted tools. It pairs a polished component-based frontend with a real LLM backend, Supabase authentication, and lightweight team collaboration.
 
-> **Note:** AI-generated content may require human review. All AI responses in this prototype are simulated for demonstration purposes.
+> **Note:** AI-generated content may require human review before use.
 
 ---
 
@@ -24,9 +24,26 @@ A unified tabbed interface with four AI-powered tools:
 ### 💬 AI Assistant
 - Conversational chatbot interface
 - Suggested prompts for quick starts
-- Context-aware simulated responses
+- Context-aware LLM responses with full message history
 
-### 📚 History
+### 📚 Prompt Templates Library
+- Curated professional templates across Email, Meetings, Project Management, Research, and Reporting
+- One-click launch that pre-configures the relevant tool with the template's prompt
+
+### 👥 Team Workspace
+- Team members, shared AI outputs, threaded comments, and a Kanban task board
+- Activity feed of shares, comments, and task updates
+- Persisted locally via `localStorage` (MVP)
+
+### 📤 Export
+Every AI result can be copied, downloaded as TXT, or exported as PDF (via `jspdf`).
+
+### 🔐 Authentication
+- Supabase email + password auth (combined sign-in / sign-up page)
+- Route protection via a `_authenticated` layout
+- Logout from the sidebar
+
+### 🕘 History
 - Persistent local history of every AI activity (via `localStorage`)
 - Full-text search across prompts and outputs
 - Filter by tool type
@@ -46,6 +63,9 @@ A unified tabbed interface with four AI-powered tools:
 | UI Components  | [shadcn/ui](https://ui.shadcn.com/) (Radix + Tailwind) |
 | Icons          | Lucide React                                   |
 | State / Data   | TanStack Query, React hooks, `localStorage`    |
+| Auth / DB      | Supabase (via Lovable Cloud)                   |
+| AI             | Lovable AI Gateway (`google/gemini-3-flash-preview`) via Vercel AI SDK |
+| Export         | `jspdf` for PDF downloads                      |
 | Language       | TypeScript (strict)                            |
 
 ---
@@ -59,16 +79,27 @@ src/
 │   ├── app-layout.tsx       # App shell with sidebar
 │   ├── app-sidebar.tsx      # Navigation sidebar
 │   └── ui/                  # shadcn/ui primitives
+├── integrations/
+│   └── supabase/            # Auth client, middleware, generated types
 ├── lib/
-│   ├── ai-service.ts        # Simulated AI response engine
+│   ├── ai-service.ts        # Client-side wrapper around the AI server function
+│   ├── ai.functions.ts      # TanStack server function calling the AI Gateway
+│   ├── ai-gateway.server.ts # Lovable AI Gateway provider
+│   ├── templates.ts         # Prompt template catalog
+│   ├── team-store.ts        # Team collaboration store (localStorage)
 │   ├── history-store.ts     # localStorage-backed history
 │   └── utils.ts
 ├── routes/
 │   ├── __root.tsx           # Root layout + SEO metadata
-│   ├── index.tsx            # Dashboard
-│   ├── tools.tsx            # Productivity Tools (tabbed)
-│   ├── assistant.tsx        # AI chatbot
-│   └── history.tsx          # Activity history
+│   ├── auth.tsx             # Sign in / sign up
+│   └── _authenticated/      # Protected routes
+│       ├── route.tsx        # Auth gate
+│       ├── index.tsx        # Dashboard
+│       ├── tools.tsx        # Productivity Tools (tabbed)
+│       ├── assistant.tsx    # AI chatbot
+│       ├── templates.tsx    # Prompt Templates gallery
+│       ├── team.tsx         # Team workspace
+│       └── history.tsx      # Activity history
 └── styles.css               # Design tokens & global styles
 ```
 
@@ -116,15 +147,12 @@ All components consume tokens through Tailwind utilities (`bg-primary`, `text-mu
 
 ## 🧠 How the "AI" Works
 
-This is an **academic prototype** — there is no LLM call. `src/lib/ai-service.ts` provides deterministic, templated responses with realistic latency (700–1900 ms) to simulate an AI backend. Each tool has its own response generator:
+FlowMind calls a real LLM through the **Lovable AI Gateway**. The client-side helpers in `src/lib/ai-service.ts` (`generateEmail`, `summarizeNotes`, `planTasks`, `researchTopic`, `chatReply`) invoke a TanStack server function (`runAi` in `src/lib/ai.functions.ts`), which forwards the request to the gateway using the Vercel AI SDK (`@ai-sdk/openai-compatible` + `ai`).
 
-- `generateEmail()` — templated professional emails
-- `summarizeNotes()` — structured meeting summaries
-- `planTasks()` — prioritized task plans
-- `researchTopic()` — insights + recommendations
-- `chatReply()` — intent-matched conversational replies
-
-Swapping the mock for a real AI backend requires only replacing these functions with API calls — the UI contract stays identical.
+- Model: `google/gemini-3-flash-preview`
+- Each tool has its own system prompt tailored to the output format (structured markdown for summaries, plans, and research; plain-text emails).
+- The `LOVABLE_API_KEY` environment variable is read server-side; no keys are exposed to the browser.
+- Rate-limit (429) and credit-exhausted (402) errors are surfaced with friendly messages.
 
 ---
 
